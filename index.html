@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>五子棋 · 人机对战</title>
+  <link rel="stylesheet" href="./styles/main.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">五</span>
+        <div class="brand-text">
+          <h1>五子棋</h1>
+          <p>人机对战 · 双人对战 · 棋谱复盘</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button id="btn-new" class="btn primary">新对局</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="board-wrap">
+        <div class="board-frame" id="board-frame">
+          <canvas id="board" width="720" height="720"></canvas>
+        </div>
+      </section>
+
+      <aside class="side">
+        <div class="card">
+          <div class="card-title">对局设置</div>
+          <div class="field">
+            <span class="field-label">模式</span>
+            <div class="segmented" id="mode-group">
+              <button type="button" data-mode="pve" class="seg active">人机对战</button>
+              <button type="button" data-mode="pvp" class="seg">双人对战</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label">AI 难度</span>
+            <div class="segmented" id="difficulty-group">
+              <button type="button" data-difficulty="easy" class="seg">简单</button>
+              <button type="button" data-difficulty="normal" class="seg active">普通</button>
+              <button type="button" data-difficulty="hard" class="seg">困难</button>
+            </div>
+          </div>
+          <div class="field switch">
+            <label class="field-label" for="timer-mode">每步计时模式</label>
+            <input type="checkbox" id="timer-mode" />
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">对局状态</div>
+          <div class="status-row">
+            <span class="stone-dot" id="turn-dot"></span>
+            <span id="turn-text">黑方先行</span>
+            <span id="thinking" class="thinking hidden"><i class="spinner"></i>AI 思考中</span>
+          </div>
+          <div class="stats">
+            <div class="stat"><span>手数</span><b id="stat-moves">0</b></div>
+            <div class="stat"><span>总用时</span><b id="stat-time">00:00</b></div>
+            <div class="stat"><span>本步用时</span><b id="stat-move-time">00:00</b></div>
+          </div>
+          <div class="actions">
+            <button id="btn-undo" class="btn" type="button">悔棋</button>
+            <button id="btn-restart" class="btn" type="button">重开</button>
+          </div>
+        </div>
+
+        <div class="card grow">
+          <div class="card-title">
+            <span>最近棋谱</span>
+            <button id="btn-clear-history" class="link" type="button">清空</button>
+          </div>
+          <ul id="history-list" class="history"></ul>
+        </div>
+      </aside>
+    </main>
+
+    <div id="replay-bar" class="replay-bar hidden">
+      <button id="rp-first" class="btn small" type="button" title="第一步">⏮</button>
+      <button id="rp-prev" class="btn small" type="button" title="上一步">◀</button>
+      <input type="range" id="rp-slider" min="0" max="0" value="0" step="1" />
+      <button id="rp-next" class="btn small" type="button" title="下一步">▶</button>
+      <button id="rp-last" class="btn small" type="button" title="最后一步">⏭</button>
+      <button id="rp-auto" class="btn small" type="button">自动播放</button>
+      <span id="rp-info" class="rp-info">0 / 0</span>
+      <button id="rp-exit" class="btn small danger" type="button">退出复盘</button>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="modal" class="modal hidden">
+      <div class="modal-card">
+        <div class="result-icon" id="result-icon">●</div>
+        <h2 id="result-title">黑方获胜</h2>
+        <p id="result-sub" class="muted"></p>
+        <div class="result-stats">
+          <div class="stat"><span>手数</span><b id="result-moves">0</b></div>
+          <div class="stat"><span>用时</span><b id="result-time">00:00</b></div>
+        </div>
+        <div class="modal-actions">
+          <button id="modal-again" class="btn primary" type="button">再来一局</button>
+          <button id="modal-close" class="btn" type="button">查看棋盘</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="boot-warning" class="modal hidden">
+      <div class="modal-card wide">
+        <h2>请通过本地服务器打开</h2>
+        <p class="muted">本游戏使用 ES Modules，浏览器出于安全限制不允许从 <code>file://</code> 直接加载模块脚本。</p>
+        <p class="muted">在项目目录下任选一种方式启动静态服务器，然后访问 <code>http://localhost:8000</code>：</p>
+        <pre>python -m http.server 8000</pre>
+        <pre>node serve.js</pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.__GOMOKU_READY = false;
+    window.setTimeout(function () {
+      if (!window.__GOMOKU_READY) {
+        var el = document.getElementById('boot-warning');
+        if (el) { el.classList.remove('hidden'); }
+      }
+    }, 1500);
+  </script>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
