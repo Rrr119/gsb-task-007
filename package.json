@@ -1,0 +1,10 @@
+{
+  "name": "gomoku-canvas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "原生 ES Modules + Canvas 的五子棋人机对战（无构建工具、无外部依赖）",
+  "scripts": {
+    "test": "node tools/selftest.mjs"
+  }
+}
