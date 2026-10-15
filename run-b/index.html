@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>五子棋 · 人机对战</title>
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="app__header">
+        <h1 class="app__title">五子棋</h1>
+        <p class="app__subtitle">Canvas 绘制 · 原生 ES Modules · 棋型评估 + Alpha-Beta 搜索</p>
+      </header>
+
+      <main class="app__main">
+        <section class="board-area">
+          <div class="board-frame" id="board-frame">
+            <canvas id="board-canvas" class="board-canvas" width="600" height="600"></canvas>
+            <div class="board-overlay" id="board-overlay" hidden>
+              <span class="spinner" aria-hidden="true"></span>
+              <span class="board-overlay__text" id="board-overlay-text">AI 思考中…</span>
+            </div>
+          </div>
+          <div class="turn-bar">
+            <span class="turn-dot" id="turn-dot" data-player="1"></span>
+            <span class="turn-bar__text" id="status-text">黑棋先行</span>
+          </div>
+        </section>
+
+        <aside class="panel">
+          <section class="panel__group">
+            <h2 class="panel__label">对局模式</h2>
+            <div class="segmented" id="mode-switch">
+              <button type="button" class="segmented__btn is-active" data-mode="pve">人机对战</button>
+              <button type="button" class="segmented__btn" data-mode="pvp">双人对战</button>
+            </div>
+          </section>
+
+          <section class="panel__group" id="difficulty-group">
+            <h2 class="panel__label">AI 难度</h2>
+            <div class="segmented" id="difficulty-switch">
+              <button type="button" class="segmented__btn" data-difficulty="easy">简单</button>
+              <button type="button" class="segmented__btn is-active" data-difficulty="normal">普通</button>
+              <button type="button" class="segmented__btn" data-difficulty="hard">困难</button>
+            </div>
+            <p class="hint" id="difficulty-hint"></p>
+          </section>
+
+          <section class="panel__group stats">
+            <div class="stat">
+              <span class="stat__label">手数</span>
+              <span class="stat__value" id="stat-moves">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat__label">总用时</span>
+              <span class="stat__value" id="stat-time">00:00</span>
+            </div>
+            <div class="stat" id="stat-turn-row" hidden>
+              <span class="stat__label">本步用时</span>
+              <span class="stat__value" id="stat-turn-time">0.0s</span>
+            </div>
+          </section>
+
+          <section class="panel__group">
+            <label class="switch">
+              <input type="checkbox" id="toggle-turn-timer" />
+              <span>显示每步计时（切到后台自动冻结）</span>
+            </label>
+          </section>
+
+          <section class="panel__group panel__actions">
+            <button type="button" class="btn btn--primary" id="btn-undo">悔棋</button>
+            <button type="button" class="btn" id="btn-restart">重开</button>
+          </section>
+
+          <section class="panel__group">
+            <h2 class="panel__label panel__label--row">
+              <span>最近棋谱</span>
+              <button type="button" class="link-btn" id="btn-clear-history">清空</button>
+            </h2>
+            <ul class="history" id="history-list"></ul>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <div class="modal" id="result-modal" hidden>
+      <div class="modal__card">
+        <h2 class="modal__title" id="result-title">对局结束</h2>
+        <p class="modal__subtitle" id="result-subtitle"></p>
+        <dl class="modal__stats">
+          <div><dt>手数</dt><dd id="result-moves">0</dd></div>
+          <div><dt>用时</dt><dd id="result-time">00:00</dd></div>
+        </dl>
+        <div class="modal__actions">
+          <button type="button" class="btn btn--primary" id="btn-result-restart">再来一局</button>
+          <button type="button" class="btn" id="btn-result-undo">悔棋继续</button>
+          <button type="button" class="btn btn--ghost" id="btn-result-close">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="replay-modal" hidden>
+      <div class="modal__card modal__card--wide">
+        <h2 class="modal__title">棋谱复盘</h2>
+        <p class="modal__subtitle" id="replay-meta"></p>
+        <div class="replay">
+          <div class="replay__board">
+            <canvas id="replay-canvas" class="board-canvas" width="480" height="480"></canvas>
+          </div>
+          <div class="replay__controls">
+            <div class="replay__buttons">
+              <button type="button" class="btn btn--small" id="replay-first">|◀</button>
+              <button type="button" class="btn btn--small" id="replay-prev">◀</button>
+              <button type="button" class="btn btn--primary btn--small" id="replay-play">▶</button>
+              <button type="button" class="btn btn--small" id="replay-next">▶</button>
+              <button type="button" class="btn btn--small" id="replay-last">▶|</button>
+            </div>
+            <input type="range" id="replay-range" min="0" max="0" value="0" />
+            <p class="replay__info" id="replay-info">第 0 / 0 手</p>
+          </div>
+        </div>
+        <div class="modal__actions">
+          <button type="button" class="btn" id="btn-replay-close">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" hidden></div>
+
+    <div class="boot-warning" id="boot-warning" hidden>
+      <h2>模块未能加载</h2>
+      <p>
+        本项目使用原生 ES Modules。用 <code>file://</code> 直接双击打开时，部分浏览器会因 CORS
+        限制拦截模块加载，这是浏览器的安全策略而非代码问题。
+      </p>
+      <p>请在项目目录下启动任意静态服务器后访问，例如：</p>
+      <pre>python -m http.server 8000</pre>
+      <p>然后打开 <code>http://localhost:8000/</code>（或使用 VS Code 的 Live Server 插件）。</p>
+    </div>
+
+    <script>
+      window.setTimeout(function () {
+        if (!window.__GOMOKU_READY__) {
+          var el = document.getElementById('boot-warning');
+          if (el) el.hidden = false;
+        }
+      }, 1500);
+    </script>
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>
